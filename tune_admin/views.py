@@ -121,6 +121,19 @@ def get_max_min_price(cost):
         if i[0] <= cost <= i[1]:
             return [i[0], i[1]]
 
+          
+def get_sale():
+    result = Product.objects.values('name').\
+        filter(sell=False).\
+        filter(booking=False).\
+        filter(moderation=True).\
+        filter(sale=True)
+    list_all = []
+    for i in result:
+        list_all.append(i['name'])
+    return list_all
+ sale_tmp = get_sale()
+  
 current_category = list(set([x[1] for x in get_current_product()]))
 all_products = [x for x in get_all_products()]
 current_product = get_current_product()
@@ -252,6 +265,7 @@ def support_products(message):
 dig = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ]
 @client.message_handler(func=lambda message: message.text in all_products)
 @client.message_handler(func=lambda message: '⋅' in message.text)
+@client.message_handler(func=lambda message: message.text.split()[0] == '🔻')
 def show_model(message, extra=None):
     tmp = message.text
     name_to_search = message.text
@@ -261,7 +275,13 @@ def show_model(message, extra=None):
             name.remove('⋅')
         if '⋅' in message.text:
             name_to_search = message.text.replace('⋅ ', '')
-
+      
+        if name[0] == '🔻':
+          name.remove('🔻')
+        if '🔻' in message.text:
+          name_to_search = message.text.replace('🔻 ', '')
+          
+          
         print('--', name)
         name1 = name[0] + ' ' + name[1][0]
         products = []
@@ -299,6 +319,14 @@ def show_model(message, extra=None):
                 products.remove([tmp])
                 products.append(['Забронировать|Узнать подробней' + '\n' + message.text + ' Арт. '+detail_product[0].article])
             products.append(['⬅️Другой бюджет'])
+            
+        elif '🔻' in tmp:
+          products = [['🔻 ' + x] for x in sale_tmp]
+          if [tmp] in products:
+              products.remove([tmp])
+              products.append(['Забронировать|Узнать подробней' + '\n' + tmp + ' Арт. ' + detail_product[0].article])
+          products.append(['⬅️Главное меню'])
+          
         else:
             products = [[x] for x in products]
             products.append(['Забронировать|Узнать подробней' + '\n' + message.text + ' Арт. '+detail_product[0].article])
@@ -494,6 +522,23 @@ def my_budget_show(message):
 def tradein_model(message):
     start_message(message, text='Программа trade-in доступна!\nС помощью нее вы можете сдать свое старое устройство Apple и получить скидку на новое или б/у (так же принятое по программе trade-in).\nЧтобы узнать размер скидки выберите пункт «Связаться с менеджером»\nИли позвоните по телефону: \n+7 (932) 222-54-45')
 
+    
+    
+    
+@client.message_handler(commands=['sale'])
+@client.message_handler(func=lambda message: message.text == '💥Скидки💥')
+def tradein_model(message):
+    sale = get_sale()
+    result = [['🔻 ' + x] for x in sorted(sale)]
+    result.append(['⬅️Главное меню'])
+    keyboard_products = telebot.types.ReplyKeyboardMarkup(True, True)
+    keyboard_products.keyboard = result
+    client.send_message(chat_id=message.chat.id,
+                        text='Вот все скидки',
+                        reply_markup=keyboard_products)   
+    
+    
+ 
 @client.message_handler(content_types=['text'])
 def bitrix_client(message):
     if message.text not in max_products:
