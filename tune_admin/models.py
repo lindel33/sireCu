@@ -159,7 +159,7 @@ class Product(models.Model):
                                                                                                         ],
                                                                                                         )
     sale = models.BooleanField('Скидка', default=False)
-
+    device_provider = models.BooleanField('Устройство поставщика', default=False)
 
     class Meta:
         verbose_name = 'Пост'
@@ -248,21 +248,11 @@ class Product(models.Model):
         self.base_text = str(self.base_text) + default_text
 
 
+        tmp_di = self.device_provider
+        self.device_provider = False
         super().save(*args, **kwargs)
 
-        # if not self.sell:
-        #     try:
-        #         send_post(media = ['/home/TuneApple/tune/' + self.image_1.url,
-        #                         '/home/TuneApple/tune/' + self.image_2.url,
-        #                         '/home/TuneApple/tune/' + self.image_3.url,
-        #                         ], caption = self.base_text)
-        #     except:
-        #         pass
-        # if extra is None:
-        #     BookingProduct.objects.create(product_pka=self,
-        #                                   booking_flag=False,
-        #                                   sell_flag=False,)
-        if self.count == 1:
+        if self.count == 1 or tmp_di:
             BookingProduct.objects.create(product_pka=self,
                                           booking_flag=False,
                                           sell_flag=False,)
