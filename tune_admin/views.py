@@ -132,7 +132,8 @@ def get_sale():
     for i in result:
         list_all.append(i['name'])
     return list_all
- sale_tmp = get_sale()
+  
+sale_tmp = get_sale()
   
 current_category = list(set([x[1] for x in get_current_product()]))
 all_products = [x for x in get_all_products()]
