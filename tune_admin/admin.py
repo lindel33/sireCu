@@ -55,7 +55,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ['name', 'price', 'article', 'category', 'series', 'moderation', 'booking', 'sell', 'author', 'day_created',]
     search_fields = ('name','article', 'provider_device')
     exclude = ('name_tmp', 'up_price', 'author')
-    actions = [plus, plust, minus, minust, cost10, cost20, cost30, sell]
+    actions = [plus, plust, minus, minust, cost10, cost20, cost30, sell, 'new_sale']
 
     admin.site.site_header = 'TuneApple'
     admin.site.site_title = 'TuneAppleAdmin'
@@ -70,7 +70,34 @@ class PostAdmin(admin.ModelAdmin):
             obj.author = request.user
         super().save_model(request, obj, form, change)
 
+    @staticmethod
+    @admin.action(description='Обновить акции')
+    def new_sale( modeladmin, request, queryset):
+        all_pro = Product.objects.all()
+        for i in all_pro:
+            if i.sale == True:
+                i.price = i.price + 2000
+                i.save()
+        Product.objects.update(sale=False)
+        import random
+        queryset_products = all_pro.filter(sell=False).filter(moderation=True).filter(booking=False)
+        exit_list = []
+        while len(exit_list) != 10:
 
+            import datetime
+
+            today = datetime.datetime.today()
+            tomorrow = today + datetime.timedelta(days=5)
+            random_index = random.randrange(len(queryset_products))
+            sale_products = queryset_products[random_index]
+            day_created = str(sale_products.day_created).split()[0]
+            tomorrow = str(tomorrow).split()[0]
+            if sale_products not in exit_list:
+                if day_created < tomorrow:
+                    sale_products.price = sale_products.price - 2000
+                    sale_products.sale = True
+                    sale_products.save()
+                    exit_list.append(1)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
