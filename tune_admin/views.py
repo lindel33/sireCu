@@ -8,8 +8,8 @@ from rest_framework.exceptions import PermissionDenied
 import requests
 from .models import Product, Category, SeriesCategory
 from cost_models.models import DetailModel
-TOKEN = '5376806714:AAFzE6HW2XfZl_AlvzHKO2vsbcfsT6Eg3k8'
-URL_BITRIX = 'https://im.bitrix.info/imwebhook/eh/6c529968ec581a32c38753edca1c926a164522891257/'
+TOKEN = '5239855839:AAGMSUsbode-6PO_sOwVlqPmr6XsoAHfhY4'
+URL_BITRIX = 'https://im.bitrix.info/imwebhook/eh/6c529968ec581a32c38753edca1c926a1645891257/'
 client = telebot.TeleBot(TOKEN, threaded=False)
 menu_support = ['📱 iPhone', '📲 iPad', '💻 MacBook',
                 '🎧 AirPods', '⌚ Watch',
@@ -17,6 +17,8 @@ menu_support = ['📱 iPhone', '📲 iPad', '💻 MacBook',
 sup_callback = ['Назад к Б/У iPhone', 'Назад к Б/У iPad', 'Назад к Б/У MacBook',
                 'Назад к Б/У AirPods', 'Назад к Б/У Watch',
                 'Назад к Б/У Устройства']
+path_to_media = '/home/apple/code/project1/tune/media/'
+
 
 @csrf_exempt
 def bot(request):
@@ -308,9 +310,9 @@ def show_model(message, extra=None):
         keyboard.keyboard = products
 
         if detail_product[0].image_3:
-            f1, f2, f3 = open('/home/TuneApple/tune/media/' + str(detail_product[0].image_1), 'rb'), \
-                     open('/home/TuneApple/tune/media/' + str(detail_product[0].image_2), 'rb'), \
-                     open('/home/TuneApple/tune/media/' + str(detail_product[0].image_3), 'rb')
+            f1, f2, f3 = open(path_to_media + str(detail_product[0].image_1), 'rb'), \
+                     open(path_to_media + str(detail_product[0].image_2), 'rb'), \
+                     open(path_to_media + str(detail_product[0].image_3), 'rb')
             f1, f2, f3 = f1.read(), f2.read(), f3.read()
             client.send_media_group(chat_id=message.chat.id, media=[
                 telebot.types.InputMediaPhoto(f1, caption=detail_product[0].base_text),
@@ -320,8 +322,8 @@ def show_model(message, extra=None):
                                 text='Хотите забронировать эту модель?',
                                 reply_markup=keyboard)
         else:
-            f1, f2 = open('/home/TuneApple/tune/media/' + str(detail_product[0].image_1), 'rb'), \
-                     open('/home/TuneApple/tune/media/' + str(detail_product[0].image_2), 'rb')
+            f1, f2 = open(path_to_media + str(detail_product[0].image_1), 'rb'), \
+                     open(path_to_media + str(detail_product[0].image_2), 'rb')
 
             f1, f2 = f1.read(), f2.read()
             client.send_media_group(chat_id=message.chat.id, media=[
