@@ -79,6 +79,8 @@ class ProviderProduct(models.Model):
         verbose_name_plural = 'Посты'
 
     def save(self, extra=None, *args, **kwargs):
+        if self.sell:
+            Product.objects.filter(article=self.article).update(sell=True)
         self.base_text = text_default
         price_list = []
         for element in str(self.price):
