@@ -121,42 +121,43 @@ class ProviderProduct(models.Model):
         else:
             self.base_text = str(self.base_text) + '\n' + str(self.guaranty) + '\n'
         self.base_text = str(self.base_text) + default_text
-        Product.objects.create(
-            image_1=self.image_1,
-            image_2=self.image_2,
-            image_3=self.image_3,
-            sell=False,
-            booking=False,
-            moderation=False,
-            price=self.price,
-            smile=self.smile,
-            name=self.name,
-            name_tmp=self.name_tmp,
-            tests=self.tests,
-            article=self.article,
-            state=self.state,
-            state_akb=self.state_akb,
-            works=self.works,
-            kit=self.kit,
-            guaranty=self.guaranty,
-            custom_guaranty=self.custom_guaranty,
+        if self.device_provider:
+            Product.objects.create(
+                image_1=self.image_1,
+                image_2=self.image_2,
+                image_3=self.image_3,
+                sell=False,
+                booking=False,
+                moderation=False,
+                price=self.price,
+                smile=self.smile,
+                name=self.name,
+                name_tmp=self.name_tmp,
+                tests=self.tests,
+                article=self.article,
+                state=self.state,
+                state_akb=self.state_akb,
+                works=self.works,
+                kit=self.kit,
+                guaranty=self.guaranty,
+                custom_guaranty=self.custom_guaranty,
 
-            base_text=self.base_text,
-            day_created=self.day_created,
-            day_next_publish=self.day_next_publish,
+                base_text=self.base_text,
+                day_created=self.day_created,
+                day_next_publish=self.day_next_publish,
 
-            category=self.category,
-            series=self.series,
+                category=self.category,
+                series=self.series,
 
-            author=self.author,
-            count=1,
-            up_price=self.up_price,
+                author=self.author,
+                count=1,
+                up_price=self.up_price,
 
-            provider_device=self.provider_device,
-            device_provider=self.device_provider,
+                provider_device=self.provider_device,
+                device_provider=self.device_provider,
 
-        )
-        self.device_provider = False
+            )
+            self.device_provider = False
         super().save(*args, **kwargs)
 
     def __str__(self):
