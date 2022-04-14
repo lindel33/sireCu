@@ -72,6 +72,7 @@ class ProviderProduct(models.Model):
         ('Эмиль', 'Эмиль'),
     ],
                                        )
+    device_provider = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = 'Пост'
@@ -148,11 +149,15 @@ class ProviderProduct(models.Model):
             series=self.series,
 
             author=self.author,
-            count=0,
+            count=1,
             up_price=self.up_price,
 
             provider_device=self.provider_device,
+            device_provider=self.device_provider,
+
         )
+        self.device_provider = False
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
