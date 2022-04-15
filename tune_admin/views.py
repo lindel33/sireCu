@@ -485,6 +485,7 @@ def my_budget(message, text='Выберите бюджет'):
               ['Бюджет от 45000 до 55000'],
               ['Бюджет от 55000 до 70000'],
               ['Бюджет от 70000 до 100000'],
+              ['Бюджет от 100000 до 200000'],
               ['⬅️Главное меню']]
     keyboard = telebot.types.ReplyKeyboardMarkup(True, True)
     keyboard.keyboard = my_dia
