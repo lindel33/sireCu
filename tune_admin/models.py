@@ -282,9 +282,10 @@ class BookingProduct(models.Model):
         if not self.booking_flag and not self.sell_flag:
             self.phone = ' '
             self.name_user = ' '
+        
+        super().save(*args, **kwargs)
         from .views import update_products
         update_products()  # Обновляем товары в боте
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.product_pka)
