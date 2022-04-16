@@ -160,6 +160,8 @@ class Product(models.Model):
                                                                                                         )
     sale = models.BooleanField('Скидка', default=False)
     device_provider = models.BooleanField('Устройство поставщика', default=False)
+    www = models.BooleanField('Первичное SMT', default=True)
+
 
     class Meta:
         verbose_name = 'Пост'
@@ -250,12 +252,18 @@ class Product(models.Model):
 
         tmp_di = self.device_provider
         self.device_provider = False
+        if self.www == True:
+          BookingProduct.objects.create(product_pka=self,
+                                          booking_flag=self.booking,
+                                          sell_flag=self.sell,)
+        self.www = False
         super().save(*args, **kwargs)
 
         if self.count == 1 or tmp_di:
             BookingProduct.objects.create(product_pka=self,
                                           booking_flag=False,
                                           sell_flag=False,)
+
         from .views import update_products
         update_products()  # Обновляем товары в боте
 
