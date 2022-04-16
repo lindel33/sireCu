@@ -256,7 +256,8 @@ class Product(models.Model):
             BookingProduct.objects.create(product_pka=self,
                                           booking_flag=False,
                                           sell_flag=False,)
-
+        from .views import update_products
+        update_products()  # Обновляем товары в боте
 
     def __str__(self):
         return self.name
@@ -281,7 +282,8 @@ class BookingProduct(models.Model):
         if not self.booking_flag and not self.sell_flag:
             self.phone = ' '
             self.name_user = ' '
-
+        from .views import update_products
+        update_products()  # Обновляем товары в боте
         super().save(*args, **kwargs)
 
     def __str__(self):
