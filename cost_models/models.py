@@ -230,6 +230,7 @@ class NewPriceModel(models.Model):
         """
         global series_1
         global series_2
+        wifi = None
         c = 0
         # count = (self.get_products_len(clear_list) + len(self.new_products))
         while c != 30:
