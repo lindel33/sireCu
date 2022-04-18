@@ -1,10 +1,11 @@
 import datetime
 import itertools
 from difflib import SequenceMatcher
-from pprint import pprint
 import re
-# from .price import price
+from pprint import pprint
+
 from price.models import Global, Iphone, Markup, Ipad, MacBook1, Watch, SpecialCharacter
+
 
 specification = [[i.provider_variant, i.new_variant] for i in SpecialCharacter.objects.all()]
 
@@ -40,16 +41,29 @@ ipad_all_info = Ipad.objects.all()[0]
 ipad_series = ipad_all_info.series  # Pro, Air
 ipad_series_number = ipad_all_info.numbers  # 11, 12.9
 ipad_wifi = ipad_all_info.names
+ipad_full_names = ipad_all_info.numbers  # iPad 9
 
 ipad_series_clear = re.sub('^\s+|\n|\r|\s+$', '', ipad_series).split(',')
 ipad_series_number_clear = re.sub('^\s+|\n|\r|\s+$', '', ipad_series_number).split(',')
 ipad_wifi_clear = re.sub('^\s+|\n|\r|\s+$', '', ipad_wifi).split(',')
-ipad_extra = [x[0] + ' ' + x[1] for x in itertools.product(ipad_series_clear,
-                                                           ipad_series_number_clear)]
-ipad_extra_2 = [x[0] + ' ' + x[1] for x in itertools.product(ipad_series_clear,
-                                                             ipad_wifi_clear)]
-ipad_extra_3 = ['ipad ' + x for x in ipad_series_clear]
+ipad_full_names_clear = re.sub('^\s+|\n|\'', '', ipad_full_names).split(',')
+ipad_extra = [x[0].lower() + ' ' + x[1].lower() for x in itertools.product(ipad_series_clear,
+                                                                           ipad_series_number_clear)]
+ipad_extra_2 = [x[0].lower() + ' ' + x[1].lower() for x in itertools.product(ipad_series_clear,
+                                                                             ipad_wifi_clear)]
+ipad_extra_3 = ['ipad ' + x.lower() for x in ipad_series_clear]
+extra = [x.replace(' ', '') for x in ipad_full_names_clear]
 check_names_ipad = ipad_extra + ipad_extra_2 + ipad_extra_3 + ipad_series_number.split(',')
+if '' in ipad_full_names_clear:
+    ipad_full_names_clear.remove('')
+if '' in ipad_extra_3:
+    ipad_extra_3.remove('')
+if '' in ipad_extra:
+    ipad_extra.remove('')
+# re_ipad = '|'.join(extra).replace(' ', '').lower()
+re_ipad = 'ipad2020|ipadpro11|ipadpro129|ipadair2020|ipad2020|ipadair'
+
+
 
 # MacBook
 macbook_all_info = MacBook1.objects.all()[0]
@@ -109,10 +123,12 @@ cost_tmp = None
 ram_tmp = None
 model_tmp = None
 region_tmp = None
+wifi_cell_tmp = None
+
 
 class GetModelInfo:
     def __init__(self, line):
-        self.line = line.lower().replace(' ', '')
+        self.line = re.sub('^\s+|\n|\r|\s+$', '', line).lower().replace(' ', '')
         self.line_tmp = line
         # TODO Сделать замену специфики в строке
 
@@ -125,6 +141,7 @@ class GetModelInfo:
         global ram_tmp
         global model_tmp
         global region_tmp
+        global wifi_cell_tmp
         for models in check_names_iphone:
             models = models.replace(' ', '')
             for i in self.line:
@@ -168,9 +185,13 @@ class GetModelInfo:
                 return info
 
         # MacBook
+        if '' in check_names_macbook:
+            check_names_macbook.remove('')
         for models in check_names_macbook:
             models = models.lower().replace(' ', '')
+
             if models in self.line:
+
                 if re.findall('[0-9]+', self.line):
                     if int(re.findall('[0-9]+', self.line)[-1]) > 3000:
                         cost_tmp = re.findall('[0-9]+', self.line)[-1]
@@ -187,7 +208,8 @@ class GetModelInfo:
                 if re.findall(re_macbook, self.line):
 
                     series_tmp = re.findall(re_macbook, self.line)[0]
-                    self.line = self.line.replace(series_tmp, '')
+                    if series_tmp != '':
+                        self.line = self.line.replace(series_tmp, '')
 
                 ram = '4|8|12|16|32'
                 if re.findall(ram, self.line):
@@ -212,6 +234,61 @@ class GetModelInfo:
                 color_tmp = None
                 model_tmp = 'macbook'
                 return info
+
+        # ---------------------------------> ipad <---------------------------------#
+        for models in check_names_ipad:
+
+            models = models.replace(' ', '')
+            for i in self.line:
+
+                if re.findall(country, i.lower()):
+                    region_tmp = 'Америка'
+                if re.findall('россия|ростест|рос|🇷🇺', i.lower()):
+                    region_tmp = 'Ростест'
+            if models in self.line:
+                model_tmp = 'ipad'
+                memory = '64|128|256|512|1tb|1тб'
+                if re.findall('[0-9]+', self.line):
+                    if int(re.findall('[0-9]+', self.line)[-1]) > 3000:
+                        cost_tmp = re.findall('[0-9]+', self.line)[-1]
+                        self.line = self.line.replace(cost_tmp, '')
+                if re.findall(memory, self.line):
+                    memory_tmp = re.findall(memory, self.line)[0]
+                    self.line = self.line.replace(memory_tmp, '')
+                if re.findall(colors, self.line):
+                    color_tmp = re.findall(colors, self.line)[0]
+                    self.line = self.line.replace(color_tmp, '')
+                # extra = '|'.join(x.replace(' ', '').lower() for x in ipad_full_names_clear)
+                if re.findall(re_ipad, self.line):
+                    series_tmp = re.findall(re_ipad, self.line)[0]
+                    self.line = self.line.replace(series_tmp, '')
+
+                re_wifi_cell = 'wifi|cell'
+                if re.findall(re_wifi_cell, self.line):
+                    result = re.findall(re_wifi_cell, self.line)[0]
+                    if result == 'cell':
+                        wifi_cell_tmp = 'cellular'
+                    else:
+                        wifi_cell_tmp = 'wi-fi'
+                check = [color_tmp, memory_tmp, series_tmp, cost_tmp, ]
+                if None in check:
+                    return False
+
+                if 'ipad' in series_tmp:
+                    series_tmp = series_tmp.replace('ipad', '')
+                info = {'device': 'ipad',
+                        'color': color_tmp,
+                        'memory': memory_tmp,
+                        'series': self.get_ipad_series(series_tmp),
+                        'cost': cost_tmp,
+                        'ram': None,
+                        'extra': self.line_tmp,
+                        'wifi': wifi_cell_tmp
+                        }
+                color_tmp = None
+
+                return info
+
         if model_tmp:
             if re.findall('[0-9]+', self.line):
                 if int(re.findall('[0-9]+', self.line)[-1]) > 3000:
@@ -233,7 +310,18 @@ class GetModelInfo:
                     }
             return info
 
+    def get_ipad_series(self, series):
+        print('---------------------')
 
+        if '129' in series:
+            series = series.replace('129', '12.9')
+
+            return series
+        if '2020' in series:
+            series = series.replace('2020', '(2020)')
+
+            return series
+        return series
 def generator(new_price):
     global region_tmp
     current_line = new_price.split('\n')
@@ -246,7 +334,6 @@ def generator(new_price):
         line = re.sub(r'[^\w\s]', '', line)
 
         yield line
-
 
 
 def clear_memory(memory):
@@ -263,7 +350,6 @@ def get_product_list(price):
             if models:
                 models['memory'] = clear_memory(models['memory'])
                 models['region'] = region_tmp
-                print(models)
                 exit_product.append(models)
 
     return exit_product
