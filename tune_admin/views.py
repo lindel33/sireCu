@@ -162,7 +162,7 @@ def update_products():
 @client.message_handler(func=lambda message: message.text == '⬅️Главное меню')
 @client.message_handler(commands=['start'])
 def start_message(message, text='Что хотите найти?'):
-    start_category = [['💥Скидки💥'], [['Б/У Устройства'],['Новые Устройства']], [['Trade-in'], ['Мой бюджет']], ['Связаться с менеджером']]
+    start_category = [['💥Скидки💥'], ['Б/У Устройства'],['Новые Устройства'], ['Trade-in'], ['Мой бюджет'], ['Связаться с менеджером']]
     keyboard_category = telebot.types.ReplyKeyboardMarkup(True, True)
     keyboard_category.keyboard = start_category
     client.send_message(chat_id=message.chat.id,
