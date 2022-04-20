@@ -55,7 +55,10 @@ class NewPriceModel(models.Model):
         return self.provider.name
 
     def save(self, *args, **kwargs):
-
+        self.csv_file = get_cvs_data()
+        self.csv_file_copy = self.csv_file.copy()
+        self.id_products = []
+        self.new_products = []
         list_new_products = get_product_list(self.price)
         zzz = 0
         for product in list_new_products:
@@ -85,10 +88,7 @@ class NewPriceModel(models.Model):
         new_cvs_data(self.new_products)
         super().save(*args, **kwargs)
 
-        self.csv_file = get_cvs_data()
-        self.csv_file_copy = self.csv_file.copy()
-        self.id_products = []
-        self.new_products = []
+
 
     def _get_csv_product(self, product):
         """
@@ -177,11 +177,13 @@ class NewPriceModel(models.Model):
                                     'Tilda UID': line['Tilda UID'],
                                     'cost': line['Price'],
                                     'Title': line['Title'],
-                                    'region': region})
+                                    'region': region,
+                                    'ram_mac': product['ram_mac'].lower()})
+
                                 return line
 
                 elif device == 'ipad':
-                    print(series, title)
+                    # print(product['year'], title)
                     if (series.replace(' ', '') in title.replace(' ', '') or
                             series.replace(' ', '') in editions.replace(' ', '')):
                         if color in title or color in editions:
@@ -189,23 +191,67 @@ class NewPriceModel(models.Model):
                             if memory in title.replace(' ', '') or memory in editions.replace(' ', ''):
                                 wifi = product['wifi'] + ','
                                 if wifi in title.replace(' ', '') or wifi in editions.replace(' ', ''):
-                                    self.csv_file.remove(line)
-                                    line['Price'] = self.new_cost(current_cost=line['Price'],
-                                                                  price_cost=product['cost'],
-                                                                  device=product['device'])
+                                    if region == 'ростест':
 
-                                    self.id_products.append({
-                                        'device': device,
-                                        'series': series,
-                                        'color': color,
-                                        'memory': memory,
-                                        'Tilda UID': line['Tilda UID'],
-                                        'cost': line['Price'],
-                                        'Title': line['Title'],
-                                        'region': region,
-                                        'wifi': product['wifi']})
-                                    return line
+                                        if region in title.replace(' ', '') or \
+                                                region in editions.replace(' ', ''):
+                                            self.csv_file.remove(line)
+                                            line['Price'] = self.new_cost(current_cost=line['Price'],
+                                                                          price_cost=product['cost'],
+                                                                          device=product['device'])
 
+                                            self.id_products.append({
+                                                'device': device,
+                                                'series': series,
+                                                'color': color,
+                                                'memory': memory,
+                                                'Tilda UID': line['Tilda UID'],
+                                                'cost': line['Price'],
+                                                'Title': line['Title'],
+                                                'region': region,
+                                                'wifi': product['wifi']})
+                                            return line
+                                    else:
+                                        if 'рост' not in title.replace(' ', '') or \
+                                                'рост' not in editions.replace(' ', ''):
+                                            self.csv_file.remove(line)
+                                            line['Price'] = self.new_cost(current_cost=line['Price'],
+                                                                          price_cost=product['cost'],
+                                                                          device=product['device'])
+
+                                            self.id_products.append({
+                                                'device': device,
+                                                'series': series,
+                                                'color': color,
+                                                'memory': memory,
+                                                'Tilda UID': line['Tilda UID'],
+                                                'cost': line['Price'],
+                                                'Title': line['Title'],
+                                                'region': region,
+                                                'wifi': product['wifi']})
+                                            return line
+
+                elif device == 'watch':
+                    if (series.replace(' ', '') in title.replace(' ', '') or
+                            series.replace(' ', '') in editions.replace(' ', '')):
+                        if color in title or color in editions:
+
+                            if memory in title.replace(' ', '') or memory in editions.replace(' ', ''):
+                                self.csv_file.remove(line)
+                                line['Price'] = self.new_cost(current_cost=line['Price'],
+                                                              price_cost=product['cost'],
+                                                              device=product['device'])
+
+                                self.id_products.append({
+                                    'device': device,
+                                    'series': series,
+                                    'color': color,
+                                    'memory': memory,
+                                    'Tilda UID': line['Tilda UID'],
+                                    'cost': line['Price'],
+                                    'Title': line['Title'],
+                                    'region': region})
+                                return line
     @staticmethod
     def new_cost(current_cost, price_cost, device) -> str:
         markup = Markup.objects.get(name_models=f'{device.replace(" ", "")}')
@@ -230,6 +276,7 @@ class NewPriceModel(models.Model):
         """
         global series_1
         global series_2
+
         wifi = None
         c = 0
         # count = (self.get_products_len(clear_list) + len(self.new_products))
@@ -237,8 +284,11 @@ class NewPriceModel(models.Model):
             clear_list = self.get_clear_list(product_list)
 
             for product in clear_list:
+                print('+++', product)
                 device = product['device'].lower()
                 series = product['series'].lower()
+                if 'ram_mac' in product:
+                    ram_mac = product['ram_mac'].lower()
                 if device == 'iphone':
                     series_1 = series.replace(' ', '') + ','
                     series_2 = series.replace(' ', '') + ';'
@@ -250,6 +300,13 @@ class NewPriceModel(models.Model):
                         wifi = 'wi-fi,'
                     series_1 = series.replace(' ', '')
                     series_2 = series.replace(' ', '')
+                if device == 'watch':
+                    series_1 = series.replace(' ', '') + ','
+                    series_2 = series.replace(' ', '') + ';'
+                if device == 'macbook':
+                    series_1 = series.replace(' ', '') + ''
+                    series_2 = series.replace(' ', '') + ';'
+                    ram_mac = ram_mac
                 color = product['color'].lower()
                 memory = product['memory'].lower()
                 if memory == '1':
@@ -258,10 +315,16 @@ class NewPriceModel(models.Model):
                     title = line['Title'].lower()
                     editions = line['Editions'].lower()
                     if device in title or device in editions:
+                        print(device, series)
+
                         if series_1 in title.replace(' ', '') or \
                                 series_2 in editions.replace(' ', ''):
+
                             if memory in title.replace(' ', '') or memory in editions.replace(' ', ''):
-                                if wifi:
+                                # print(series_1, wifi)
+
+                                if wifi and device == 'ipad':
+
                                     if wifi in title.replace(' ', '') or \
                                             wifi in editions.replace(' ', ''):
                                         if product['region'] == 'ростест':
@@ -276,7 +339,25 @@ class NewPriceModel(models.Model):
                                                 # self.csv_file.remove(line)
                                                 line['Price'] = product['cost']
                                                 self.new_products.append(line)
-                                elif not wifi:
+                                elif device == 'macbook':
+
+                                    if ram_mac in title.replace(' ', '') or \
+                                            ram_mac in editions.replace(' ', ''):
+                                        if product['region'] == 'ростест':
+                                            if 'рост' in title.replace(' ', '') or \
+                                                    'рост' in editions.replace(' ', ''):
+                                                line['Price'] = product['cost']
+                                                self.new_products.append(line)
+
+                                        else:
+                                            if 'рост' not in title.replace(' ', '') or \
+                                                    'рост' not in editions.replace(' ', ''):
+                                                # self.csv_file.remove(line)
+                                                line['Price'] = product['cost']
+                                                self.new_products.append(line)
+
+                                elif not wifi or device != 'ipad':
+
                                     if product['region'] == 'ростест':
                                         if 'рост' in title.replace(' ', '') or \
                                                 'рост' in editions.replace(' ', ''):
@@ -320,8 +401,8 @@ class NewPriceModel(models.Model):
             if product['extra_series'] not in series:
                 series.append(product['extra_series'])
         xxx = list(set(series))
-
         for i in xxx:
+
             tmp_cost = '0'
             series_tmp = ''
 
