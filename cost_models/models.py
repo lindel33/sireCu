@@ -63,13 +63,18 @@ class NewPriceModel(models.Model):
                 reg_tmp = '🇷🇺'
             else:
                 reg_tmp = '🇺🇸'
+            
+            if product['memory'] == '1':
+                mem_tmp = '1024'
+            else:
+                mem_tmp = product['memory']
             DetailModel.objects.create(
                 device=product['device'],
                 series=product['series'],
-                memory=product['memory'],
+                memory=mem_tmp,
                 cost=product['cost'],
-                color=reg_tmp,
-                region=product['region'],
+                color=product['color'],
+                region=reg_tmp,
                 extra=product['extra'],
                 provider=self.provider.name,
                 new_line=str(product['device']) + ' ' +
