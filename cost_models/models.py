@@ -59,12 +59,16 @@ class NewPriceModel(models.Model):
         list_new_products = get_product_list(self.price)
         zzz = 0
         for product in list_new_products:
+            if product['region'].lower() == 'ростест':
+                reg_tmp = '🇷🇺'
+            else:
+                reg_tmp = '🇺🇸'
             DetailModel.objects.create(
                 device=product['device'],
                 series=product['series'],
                 memory=product['memory'],
                 cost=product['cost'],
-                color=product['color'],
+                color=reg_tmp,
                 region=product['region'],
                 extra=product['extra'],
                 provider=self.provider.name,
